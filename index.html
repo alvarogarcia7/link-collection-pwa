@@ -34,9 +34,13 @@
                     <input
                         type="url"
                         id="recfile-url"
+                        list="url-history"
                         placeholder="https://raw.githubusercontent.com/..."
                         value="https://raw.githubusercontent.com/alvarogarcia7/link-collection/master/data/links.rec"
                     >
+                    <datalist id="url-history">
+                        <!-- URL history will be populated dynamically -->
+                    </datalist>
                     <button id="load-btn" class="btn-primary">Load Records</button>
                 </div>
                 <div id="status" class="status"></div>
@@ -109,9 +113,7 @@
         </main>
 
         <footer>
-            <p>
-                <a href="https://github.com/alvarogarcia7/link-collection-pwa" target="_blank" rel="noopener noreferrer">Link Collection Reader PWA</a> | All processing done client-side
-            </p>
+            <p>Link Collection Reader PWA | All processing done client-side</p>
             <p class="install-prompt" id="install-prompt" style="display: none;">
                 <button id="install-btn" class="btn-install">📲 Install App</button>
             </p>

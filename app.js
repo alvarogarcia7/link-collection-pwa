@@ -16,14 +16,68 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
+ * Get URL history from localStorage
+ */
+function getUrlHistory() {
+    const history = localStorage.getItem('recfileUrlHistory');
+    return history ? JSON.parse(history) : [];
+}
+
+/**
+ * Add URL to history (max 10 unique URLs)
+ */
+function addToUrlHistory(url) {
+    let history = getUrlHistory();
+
+    // Remove duplicates (case-sensitive)
+    history = history.filter(item => item !== url);
+
+    // Add new URL to the beginning
+    history.unshift(url);
+
+    // Keep only last 10
+    history = history.slice(0, 10);
+
+    // Save back to localStorage
+    localStorage.setItem('recfileUrlHistory', JSON.stringify(history));
+
+    // Update the datalist
+    populateUrlDatalist();
+}
+
+/**
+ * Populate the datalist with URL history
+ */
+function populateUrlDatalist() {
+    const datalist = document.getElementById('url-history');
+    if (!datalist) return;
+
+    const history = getUrlHistory();
+
+    datalist.innerHTML = history.map(url =>
+        `<option value="${escapeHtml(url)}">`
+    ).join('');
+}
+
+/**
  * Initialize the application
  */
 function initializeApp() {
-    // Load saved URL from localStorage
-    const savedUrl = localStorage.getItem('recfileUrl');
+    // Load saved URL from localStorage (fallback to old key if new history doesn't exist)
+    let savedUrl = localStorage.getItem('recfileUrl');
+    const history = getUrlHistory();
+
+    // If we have history, use the most recent URL from history
+    if (history.length > 0) {
+        savedUrl = history[0];
+    }
+
     if (savedUrl) {
         document.getElementById('recfile-url').value = savedUrl;
     }
+
+    // Populate the datalist with URL history
+    populateUrlDatalist();
 
     // Set up event listeners
     document.getElementById('load-btn').addEventListener('click', loadRecords);
@@ -108,8 +162,11 @@ async function loadRecords() {
         state.filteredRecords = [...state.records];
         state.currentUrl = url;
 
-        // Save URL to localStorage
+        // Save URL to localStorage (keep old key for backward compatibility)
         localStorage.setItem('recfileUrl', url);
+
+        // Add to URL history
+        addToUrlHistory(url);
 
         // Show results
         showStatus(`Successfully loaded ${state.records.length} records`, 'success');
