@@ -477,9 +477,11 @@ function createRecordCard(record) {
         // Convert to GitHub blob URL with line number if it's a raw GitHub URL
         let sourceUrl = state.currentUrl;
         if (sourceUrl.includes('raw.githubusercontent.com')) {
+            // Convert from: https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}
+            // To: https://github.com/{owner}/{repo}/blob/{branch}/{path}
             sourceUrl = sourceUrl
                 .replace('raw.githubusercontent.com', 'github.com')
-                .replace(/\/([^\/]+)$/, '/blob/$1');
+                .replace(/^(https:\/\/github\.com\/[^\/]+\/[^\/]+)\/([^\/]+)\/(.+)$/, '$1/blob/$2/$3');
         }
         sourceUrl += `#L${lineNumber}`;
         sourceLink = `<div class="record-source"><small>📄 <a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">View source (line ${lineNumber})</a></small></div>`;
