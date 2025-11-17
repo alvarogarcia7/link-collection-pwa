@@ -48,6 +48,19 @@
             <!-- Filter Section -->
             <section class="filter-section" id="filter-section" style="display: none;">
                 <h2>🔍 Filters</h2>
+                <div class="sort-controls">
+                    <label for="sort-by">Sort by:</label>
+                    <select id="sort-by" class="sort-select">
+                        <option value="none">No sorting</option>
+                        <option value="date-desc">Date (newest first)</option>
+                        <option value="date-asc">Date (oldest first)</option>
+                        <option value="title-asc">Title (A-Z)</option>
+                        <option value="title-desc">Title (Z-A)</option>
+                        <option value="tags-asc">Tags (A-Z)</option>
+                        <option value="tags-desc">Tags (Z-A)</option>
+                    </select>
+                    <span class="filter-hint">💡 Use "-" prefix to exclude (e.g., "-security")</span>
+                </div>
                 <div class="filter-grid">
                     <div class="filter-group">
                         <label for="filter-all">Search All Fields:</label>

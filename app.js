@@ -62,6 +62,7 @@ function populateUrlDatalist() {
  * Initialize the application
  */
 function initializeApp() {
+    const savedUrl = localStorage.getItem('recfileUrl');
     if (savedUrl) {
         document.getElementById('recfile-url').value = savedUrl;
     }
@@ -73,6 +74,11 @@ function initializeApp() {
     document.getElementById('load-btn').addEventListener('click', loadRecords);
     document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
     document.getElementById('toggle-config-btn').addEventListener('click', toggleConfigSection);
+
+    // Sort dropdown listener
+    document.getElementById('sort-by').addEventListener('change', () => {
+        displayRecords(state.filteredRecords);
+    });
 
     // Set up filter input listeners with debouncing
     const filterInputs = [
@@ -277,63 +283,79 @@ function parseRecfile(text) {
 }
 
 /**
+ * Check if a filter matches (supports negative filtering with "-" prefix)
+ */
+function matchesFilter(value, filter) {
+    if (!filter) return true;
+
+    const filterLower = filter.toLowerCase();
+    const valueLower = (value || '').toLowerCase();
+
+    // Check for negative filter (starts with -)
+    if (filterLower.startsWith('-')) {
+        const negativeFilter = filterLower.substring(1).trim();
+        if (!negativeFilter) return true;
+        // For negative filter, return true if the value does NOT contain the filter
+        return !valueLower.includes(negativeFilter);
+    } else {
+        // For positive filter, return true if the value contains the filter
+        return valueLower.includes(filterLower);
+    }
+}
+
+/**
  * Apply filters to records
  */
 function applyFilters() {
     const filters = {
-        all: document.getElementById('filter-all').value.toLowerCase().trim(),
-        category: document.getElementById('filter-category').value.toLowerCase().trim(),
-        title: document.getElementById('filter-title').value.toLowerCase().trim(),
-        tags: document.getElementById('filter-tags').value.toLowerCase().trim(),
-        body: document.getElementById('filter-body').value.toLowerCase().trim(),
+        all: document.getElementById('filter-all').value.trim(),
+        category: document.getElementById('filter-category').value.trim(),
+        title: document.getElementById('filter-title').value.trim(),
+        tags: document.getElementById('filter-tags').value.trim(),
+        body: document.getElementById('filter-body').value.trim(),
         date: document.getElementById('filter-date').value.trim()
     };
 
     state.filteredRecords = state.records.filter(record => {
         // Filter by "all fields"
         if (filters.all) {
-            const allText = Object.values(record).join(' ').toLowerCase();
-            if (!allText.includes(filters.all)) {
+            const allText = Object.values(record).join(' ');
+            if (!matchesFilter(allText, filters.all)) {
                 return false;
             }
         }
 
         // Filter by category
         if (filters.category) {
-            const category = (record.Category || '').toLowerCase();
-            if (!category.includes(filters.category)) {
+            if (!matchesFilter(record.Category, filters.category)) {
                 return false;
             }
         }
 
         // Filter by title
         if (filters.title) {
-            const title = (record.Title || '').toLowerCase();
-            if (!title.includes(filters.title)) {
+            if (!matchesFilter(record.Title, filters.title)) {
                 return false;
             }
         }
 
         // Filter by tags
         if (filters.tags) {
-            const tags = (record.Tags || '').toLowerCase();
-            if (!tags.includes(filters.tags)) {
+            if (!matchesFilter(record.Tags, filters.tags)) {
                 return false;
             }
         }
 
         // Filter by body
         if (filters.body) {
-            const body = (record.Body || '').toLowerCase();
-            if (!body.includes(filters.body)) {
+            if (!matchesFilter(record.Body, filters.body)) {
                 return false;
             }
         }
 
         // Filter by date
         if (filters.date) {
-            const date = record.Date || '';
-            if (!date.includes(filters.date)) {
+            if (!matchesFilter(record.Date, filters.date)) {
                 return false;
             }
         }
@@ -343,6 +365,64 @@ function applyFilters() {
 
     displayRecords(state.filteredRecords);
     updateResultCount();
+}
+
+/**
+ * Sort records based on selected criteria
+ */
+function sortRecords(records, sortBy) {
+    if (sortBy === 'none') {
+        return records;
+    }
+
+    const sorted = [...records];
+
+    switch (sortBy) {
+        case 'date-desc':
+            sorted.sort((a, b) => {
+                const dateA = a.Date || '';
+                const dateB = b.Date || '';
+                return dateB.localeCompare(dateA);
+            });
+            break;
+        case 'date-asc':
+            sorted.sort((a, b) => {
+                const dateA = a.Date || '';
+                const dateB = b.Date || '';
+                return dateA.localeCompare(dateB);
+            });
+            break;
+        case 'title-asc':
+            sorted.sort((a, b) => {
+                const titleA = (a.Title || '').toLowerCase();
+                const titleB = (b.Title || '').toLowerCase();
+                return titleA.localeCompare(titleB);
+            });
+            break;
+        case 'title-desc':
+            sorted.sort((a, b) => {
+                const titleA = (a.Title || '').toLowerCase();
+                const titleB = (b.Title || '').toLowerCase();
+                return titleB.localeCompare(titleA);
+            });
+            break;
+        case 'tags-asc':
+            sorted.sort((a, b) => {
+                const tagsA = (a.Tags || '').toLowerCase();
+                const tagsB = (b.Tags || '').toLowerCase();
+                return tagsA.localeCompare(tagsB);
+            });
+            break;
+        case 'tags-desc':
+            sorted.sort((a, b) => {
+                const tagsA = (a.Tags || '').toLowerCase();
+                const tagsB = (b.Tags || '').toLowerCase();
+                return tagsB.localeCompare(tagsA);
+            });
+            break;
+    }
+
+    return sorted;
 }
 
 /**
@@ -370,7 +450,11 @@ function displayRecords(records) {
         return;
     }
 
-    container.innerHTML = records.map(record => createRecordCard(record)).join('');
+    // Apply sorting
+    const sortBy = document.getElementById('sort-by')?.value || 'none';
+    const sortedRecords = sortRecords(records, sortBy);
+
+    container.innerHTML = sortedRecords.map(record => createRecordCard(record)).join('');
 }
 
 /**
@@ -416,6 +500,7 @@ function createRecordCard(record) {
 
             ${tags.length > 0 ? `
                 <div class="record-tags">
+                    ${tags.map(tag => `<span class="tag" onclick="filterByTag('${escapeHtml(tag).replace(/'/g, '&#39;')}')">${escapeHtml(tag)}</span>`).join('')}
                 </div>
             ` : ''}
 
