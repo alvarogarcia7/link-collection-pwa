@@ -89,13 +89,16 @@
                         >
                     </div>
                     <div class="filter-group">
-                        <label for="filter-tags">Tags:</label>
-                        <input
-                            type="text"
-                            id="filter-tags"
-                            list="tag-suggestions"
-                            placeholder="e.g., security"
-                        >
+                        <label for="filter-tags-input">Tags:</label>
+                        <div id="filter-tags-container" class="tag-chips-container">
+                            <input
+                                type="text"
+                                id="filter-tags-input"
+                                list="tag-suggestions"
+                                placeholder="e.g., security, javascript"
+                                class="tag-chips-input"
+                            >
+                        </div>
                         <datalist id="tag-suggestions"></datalist>
                     </div>
                     <div class="filter-group">

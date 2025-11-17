@@ -7,6 +7,7 @@
 const state = {
     records: [],
     filteredRecords: [],
+    activeFilterTags: [], // Array of active tag filters
 };
 
 // Initialize app when DOM is loaded
@@ -85,7 +86,6 @@ function initializeApp() {
         'filter-all',
         'filter-category',
         'filter-title',
-        'filter-tags',
         'filter-body',
         'filter-date'
     ];
@@ -93,6 +93,36 @@ function initializeApp() {
     filterInputs.forEach(id => {
         const input = document.getElementById(id);
         input.addEventListener('input', debounce(applyFilters, 300));
+    });
+
+    // Set up tag chips input listeners
+    const tagInput = document.getElementById('filter-tags-input');
+
+    // Handle Enter key
+    tagInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            parseTagsFromInput();
+        } else if (e.key === ',' || e.key === 'Tab') {
+            e.preventDefault();
+            parseTagsFromInput();
+        } else if (e.key === 'Backspace' && tagInput.value === '' && state.activeFilterTags.length > 0) {
+            // Remove last chip if backspace is pressed on empty input
+            removeTagChip(state.activeFilterTags.length - 1);
+        }
+    });
+
+    // Handle blur event (when user clicks away)
+    tagInput.addEventListener('blur', () => {
+        parseTagsFromInput();
+    });
+
+    // Make container clickable to focus input
+    const tagContainer = document.getElementById('filter-tags-container');
+    tagContainer.addEventListener('click', (e) => {
+        if (e.target === tagContainer) {
+            tagInput.focus();
+        }
     });
 
     // Allow Enter key to load records
@@ -311,7 +341,6 @@ function applyFilters() {
         all: document.getElementById('filter-all').value.trim(),
         category: document.getElementById('filter-category').value.trim(),
         title: document.getElementById('filter-title').value.trim(),
-        tags: document.getElementById('filter-tags').value.trim(),
         body: document.getElementById('filter-body').value.trim(),
         date: document.getElementById('filter-date').value.trim()
     };
@@ -339,10 +368,13 @@ function applyFilters() {
             }
         }
 
-        // Filter by tags
-        if (filters.tags) {
-            if (!matchesFilter(record.Tags, filters.tags)) {
-                return false;
+        // Filter by active tag chips
+        if (state.activeFilterTags.length > 0) {
+            // All active tags must match
+            for (const tag of state.activeFilterTags) {
+                if (!matchesFilter(record.Tags, tag)) {
+                    return false;
+                }
             }
         }
 
@@ -432,9 +464,13 @@ function clearFilters() {
     document.getElementById('filter-all').value = '';
     document.getElementById('filter-category').value = '';
     document.getElementById('filter-title').value = '';
-    document.getElementById('filter-tags').value = '';
+    document.getElementById('filter-tags-input').value = '';
     document.getElementById('filter-body').value = '';
     document.getElementById('filter-date').value = '';
+
+    // Clear active tag chips
+    state.activeFilterTags = [];
+    renderTagChips();
 
     applyFilters();
 }
@@ -627,12 +663,88 @@ function escapeHtml(text) {
 }
 
 /**
+ * Add a tag chip to the filter
+ */
+function addTagChip(tag) {
+    const trimmedTag = tag.trim();
+    if (!trimmedTag) return;
+
+    // Check if tag already exists (case-insensitive)
+    const tagLower = trimmedTag.toLowerCase();
+    const exists = state.activeFilterTags.some(t => t.toLowerCase() === tagLower);
+    if (exists) return;
+
+    // Add to active tags
+    state.activeFilterTags.push(trimmedTag);
+    renderTagChips();
+    applyFilters();
+}
+
+/**
+ * Remove a tag chip from the filter
+ */
+function removeTagChip(index) {
+    state.activeFilterTags.splice(index, 1);
+    renderTagChips();
+    applyFilters();
+}
+
+/**
+ * Render all tag chips in the container
+ */
+function renderTagChips() {
+    const container = document.getElementById('filter-tags-container');
+    const input = document.getElementById('filter-tags-input');
+
+    // Remove all existing chips
+    const existingChips = container.querySelectorAll('.tag-chip');
+    existingChips.forEach(chip => chip.remove());
+
+    // Add chips for each active tag
+    state.activeFilterTags.forEach((tag, index) => {
+        const chip = document.createElement('div');
+        const isNegative = tag.startsWith('-');
+        chip.className = isNegative ? 'tag-chip tag-chip-negative' : 'tag-chip';
+
+        const textSpan = document.createElement('span');
+        textSpan.className = 'tag-chip-text';
+        textSpan.textContent = tag;
+
+        const removeBtn = document.createElement('span');
+        removeBtn.className = 'tag-chip-remove';
+        removeBtn.textContent = '×';
+        removeBtn.onclick = () => removeTagChip(index);
+
+        chip.appendChild(textSpan);
+        chip.appendChild(removeBtn);
+
+        // Insert before the input
+        container.insertBefore(chip, input);
+    });
+}
+
+/**
+ * Parse comma-separated tags from input and add them as chips
+ */
+function parseTagsFromInput() {
+    const input = document.getElementById('filter-tags-input');
+    const value = input.value.trim();
+
+    if (!value) return;
+
+    // Split by comma and add each tag
+    const tags = value.split(',').map(t => t.trim()).filter(t => t);
+    tags.forEach(tag => addTagChip(tag));
+
+    // Clear the input
+    input.value = '';
+}
+
+/**
  * Filter by tag when a tag is clicked
  */
 function filterByTag(tag) {
-    const filterInput = document.getElementById('filter-tags');
-    filterInput.value = tag;
-    applyFilters();
+    addTagChip(tag);
 
     // Scroll to filter section
     document.getElementById('filter-section').scrollIntoView({ behavior: 'smooth', block: 'start' });

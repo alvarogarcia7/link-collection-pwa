@@ -272,6 +272,86 @@ button {
     border-color: var(--primary-color);
 }
 
+/* Tag chips container */
+.tag-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    min-height: 42px;
+    background: white;
+    align-items: center;
+    transition: border-color 0.3s;
+    cursor: text;
+}
+
+.tag-chips-container:focus-within {
+    border-color: var(--primary-color);
+}
+
+.tag-chips-input {
+    flex: 1;
+    min-width: 150px;
+    border: none;
+    outline: none;
+    padding: 4px 6px;
+    font-size: 0.95rem;
+}
+
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    padding: 4px 8px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.tag-chip:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.tag-chip-text {
+    user-select: none;
+}
+
+.tag-chip-remove {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.1);
+    font-size: 0.75rem;
+    font-weight: bold;
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+.tag-chip-remove:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.tag-chip-negative {
+    background: #FFE7E7;
+    color: #CC0000;
+}
+
+.tag-chip-negative:hover {
+    background: var(--error);
+    color: white;
+}
+
 .filter-actions {
     display: flex;
     justify-content: space-between;
