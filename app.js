@@ -3,6 +3,13 @@
  * Main application logic with recfile parser and filtering
  */
 
+// Import services
+import { getUrlHistory, addToUrlHistory } from './services/urlHistoryService.js';
+import { parseRecfile } from './services/recfileParserService.js';
+import { applyFilters as applyFiltersService, extractCategories, extractTags } from './services/filterService.js';
+import { convertToRawUrl, convertToGitHubBlobUrl } from './services/urlService.js';
+import { escapeHtml, formatDate, debounce } from './services/utilsService.js';
+
 // State management
 const state = {
     records: [],
@@ -14,35 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
 });
 
-/**
- * Get URL history from localStorage
- */
-function getUrlHistory() {
-    const history = localStorage.getItem('recfileUrlHistory');
-    return history ? JSON.parse(history) : [];
-}
-
-/**
- * Add URL to history (max 10 unique URLs)
- */
-function addToUrlHistory(url) {
-    let history = getUrlHistory();
-
-    // Remove duplicates (case-sensitive)
-    history = history.filter(item => item !== url);
-
-    // Add new URL to the beginning
-    history.unshift(url);
-
-    // Keep only last 10
-    history = history.slice(0, 10);
-
-    // Save back to localStorage
-    localStorage.setItem('recfileUrlHistory', JSON.stringify(history));
-
-    // Update the datalist
-    populateUrlDatalist();
-}
 
 /**
  * Populate the datalist with URL history
@@ -51,7 +29,7 @@ function populateUrlDatalist() {
     const datalist = document.getElementById('url-history');
     if (!datalist) return;
 
-    const history = getUrlHistory();
+    const history = getUrlHistory(localStorage);
 
     datalist.innerHTML = history.map(url =>
         `<option value="${escapeHtml(url)}">`
@@ -167,7 +145,8 @@ async function loadRecords() {
         state.currentUrl = url;
 
         localStorage.setItem('recfileUrl', url);
-
+        addToUrlHistory(localStorage, url);
+        populateUrlDatalist();
 
         // Show results
         showStatus(`Successfully loaded ${state.records.length} records`, 'success');
@@ -185,162 +164,21 @@ async function loadRecords() {
     }
 }
 
-/**
- * Convert GitHub blob URLs to raw content URLs
- */
-function convertToRawUrl(url) {
-    if (url.includes('github.com') && url.includes('/blob/')) {
-        return url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
-    }
-    return url;
-}
-
-/**
- * Parse recfile format into structured records
- */
-function parseRecfile(text) {
-    const records = [];
-    const lines = text.split('\n');
-
-    let currentRecord = {};
-    let currentField = null;
-    let currentValue = '';
-    let recordStartLine = -1;
-    let inMetadata = true;
-
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-
-        // Skip metadata lines (starting with %)
-        if (line.startsWith('%')) {
-            continue;
-        }
-
-        // Empty line indicates end of record
-        if (line.trim() === '') {
-            if (currentField) {
-                currentRecord[currentField] = currentValue.trim();
-                currentField = null;
-                currentValue = '';
-            }
-
-            if (Object.keys(currentRecord).length > 0) {
-                currentRecord._lineNumber = recordStartLine;
-                records.push(currentRecord);
-                currentRecord = {};
-                recordStartLine = -1;
-            }
-            inMetadata = false;
-            continue;
-        }
-
-        // Check if line is a continuation (starts with +)
-        if (line.startsWith('+')) {
-            if (currentField) {
-                currentValue += '\n' + line.substring(1).trim();
-            }
-            continue;
-        }
-
-        // Check if line starts a new field (contains :)
-        const colonIndex = line.indexOf(':');
-        if (colonIndex > 0 && !line.startsWith(' ') && !line.startsWith('\t')) {
-            // Save previous field if exists
-            if (currentField) {
-                currentRecord[currentField] = currentValue.trim();
-            }
-
-            // Start new field
-            currentField = line.substring(0, colonIndex).trim();
-            currentValue = line.substring(colonIndex + 1).trim();
-
-            // Track the start line of this record
-            if (recordStartLine === -1) {
-                recordStartLine = i + 1; // Line numbers are 1-indexed
-            }
-        } else if (currentField) {
-            // Continuation of previous field value
-            currentValue += ' ' + line.trim();
-        }
-    }
-
-    // Don't forget the last record
-    if (currentField) {
-        currentRecord[currentField] = currentValue.trim();
-    }
-    if (Object.keys(currentRecord).length > 0) {
-        currentRecord._lineNumber = recordStartLine;
-        records.push(currentRecord);
-    }
-
-    return records;
-}
 
 /**
  * Apply filters to records
  */
 function applyFilters() {
     const filters = {
-        all: document.getElementById('filter-all').value.toLowerCase().trim(),
-        category: document.getElementById('filter-category').value.toLowerCase().trim(),
-        title: document.getElementById('filter-title').value.toLowerCase().trim(),
-        tags: document.getElementById('filter-tags').value.toLowerCase().trim(),
-        body: document.getElementById('filter-body').value.toLowerCase().trim(),
+        all: document.getElementById('filter-all').value.trim(),
+        category: document.getElementById('filter-category').value.trim(),
+        title: document.getElementById('filter-title').value.trim(),
+        tags: document.getElementById('filter-tags').value.trim(),
+        body: document.getElementById('filter-body').value.trim(),
         date: document.getElementById('filter-date').value.trim()
     };
 
-    state.filteredRecords = state.records.filter(record => {
-        // Filter by "all fields"
-        if (filters.all) {
-            const allText = Object.values(record).join(' ').toLowerCase();
-            if (!allText.includes(filters.all)) {
-                return false;
-            }
-        }
-
-        // Filter by category
-        if (filters.category) {
-            const category = (record.Category || '').toLowerCase();
-            if (!category.includes(filters.category)) {
-                return false;
-            }
-        }
-
-        // Filter by title
-        if (filters.title) {
-            const title = (record.Title || '').toLowerCase();
-            if (!title.includes(filters.title)) {
-                return false;
-            }
-        }
-
-        // Filter by tags
-        if (filters.tags) {
-            const tags = (record.Tags || '').toLowerCase();
-            if (!tags.includes(filters.tags)) {
-                return false;
-            }
-        }
-
-        // Filter by body
-        if (filters.body) {
-            const body = (record.Body || '').toLowerCase();
-            if (!body.includes(filters.body)) {
-                return false;
-            }
-        }
-
-        // Filter by date
-        if (filters.date) {
-            const date = record.Date || '';
-            if (!date.includes(filters.date)) {
-                return false;
-            }
-        }
-
-        return true;
-    });
-
+    state.filteredRecords = applyFiltersService(state.records, filters);
     displayRecords(state.filteredRecords);
     updateResultCount();
 }
@@ -390,14 +228,7 @@ function createRecordCard(record) {
     // Create source link
     let sourceLink = '';
     if (lineNumber && state.currentUrl) {
-        // Convert to GitHub blob URL with line number if it's a raw GitHub URL
-        let sourceUrl = state.currentUrl;
-        if (sourceUrl.includes('raw.githubusercontent.com')) {
-            sourceUrl = sourceUrl
-                .replace('raw.githubusercontent.com', 'github.com')
-                .replace(/\/([^\/]+)$/, '/blob/$1');
-        }
-        sourceUrl += `#L${lineNumber}`;
+        const sourceUrl = convertToGitHubBlobUrl(state.currentUrl, lineNumber);
         sourceLink = `<div class="record-source"><small>📄 <a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">View source (line ${lineNumber})</a></small></div>`;
     }
 
@@ -433,55 +264,22 @@ function createRecordCard(record) {
 }
 
 /**
- * Format date string
- */
-function formatDate(dateString) {
-    if (!dateString) return '';
-
-    try {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return dateString;
-
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    } catch (e) {
-        return dateString;
-    }
-}
-
-/**
  * Populate autocomplete suggestions for category and tags
  */
 function populateAutocompleteSuggestions() {
-    // Extract unique categories
-    const categories = new Set();
-    state.records.forEach(record => {
-        if (record.Category) {
-            categories.add(record.Category.trim());
-        }
-    });
-
-    // Extract unique tags
-    const tags = new Set();
-    state.records.forEach(record => {
-        if (record.Tags) {
-            const tagList = record.Tags.split(',').map(t => t.trim()).filter(t => t);
-            tagList.forEach(tag => tags.add(tag));
-        }
-    });
+    // Extract unique categories and tags using services
+    const categories = extractCategories(state.records);
+    const tags = extractTags(state.records);
 
     // Populate category datalist
     const categoryDatalist = document.getElementById('category-suggestions');
-    categoryDatalist.innerHTML = Array.from(categories).sort()
+    categoryDatalist.innerHTML = categories
         .map(cat => `<option value="${escapeHtml(cat)}">`)
         .join('');
 
     // Populate tags datalist
     const tagsDatalist = document.getElementById('tag-suggestions');
-    tagsDatalist.innerHTML = Array.from(tags).sort()
+    tagsDatalist.innerHTML = tags
         .map(tag => `<option value="${escapeHtml(tag)}">`)
         .join('');
 }
@@ -515,30 +313,6 @@ function showStatus(message, type = 'info') {
             statusEl.className = 'status';
         }, 3000);
     }
-}
-
-/**
- * Debounce function for input handlers
- */
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-/**
- * Escape HTML to prevent XSS
- */
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 /**

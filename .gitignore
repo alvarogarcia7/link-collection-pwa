@@ -21,3 +21,10 @@ npm-debug.log*
 
 # Optional eslint cache
 .eslintcache
+
+# Dependencies
+node_modules/
+
+# Testing
+coverage/
+.jest-cache/
