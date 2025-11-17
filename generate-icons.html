@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Generator</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #4A90E2; }
+        button {
+            background: #4A90E2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #357ABD;
+        }
+        .preview {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .preview img {
+            margin: 10px;
+            border: 1px solid #ddd;
+        }
+        .instructions {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 PWA Icon Generator</h1>
+
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Click the buttons below to generate PNG icons</li>
+                <li>The icons will be automatically downloaded</li>
+                <li>Save them in your project root directory</li>
+            </ol>
+        </div>
+
+        <div>
+            <button onclick="generateIcon(192)">Generate 192x192 Icon</button>
+            <button onclick="generateIcon(512)">Generate 512x512 Icon</button>
+        </div>
+
+        <div class="preview">
+            <h3>Preview:</h3>
+            <div id="preview-container"></div>
+        </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        // SVG icon source
+        const svgSource = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#4A90E2" rx="80"/>
+  <g fill="#FFFFFF">
+    <rect x="140" y="120" width="232" height="280" rx="8" fill="#FFFFFF"/>
+    <rect x="140" y="120" width="20" height="280" fill="#E0E0E0" rx="8"/>
+    <line x1="180" y1="120" x2="180" y2="400" stroke="#4A90E2" stroke-width="2"/>
+    <g transform="translate(240, 220)">
+      <path d="M 0 20 Q -10 20 -10 10 Q -10 0 0 0 L 20 0"
+            stroke="#4A90E2" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <path d="M 40 20 Q 50 20 50 10 Q 50 0 40 0 L 20 0"
+            stroke="#4A90E2" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <line x1="15" y1="10" x2="25" y2="10" stroke="#4A90E2" stroke-width="12" stroke-linecap="round"/>
+    </g>
+    <rect x="200" y="160" width="120" height="6" rx="3" fill="#4A90E2" opacity="0.6"/>
+    <rect x="200" y="180" width="100" height="6" rx="3" fill="#4A90E2" opacity="0.6"/>
+    <rect x="200" y="200" width="110" height="6" rx="3" fill="#4A90E2" opacity="0.6"/>
+    <rect x="200" y="320" width="120" height="6" rx="3" fill="#4A90E2" opacity="0.6"/>
+    <rect x="200" y="340" width="90" height="6" rx="3" fill="#4A90E2" opacity="0.6"/>
+    <rect x="200" y="360" width="105" height="6" rx="3" fill="#4A90E2" opacity="0.6"/>
+  </g>
+</svg>`;
+
+        function generateIcon(size) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+
+            const img = new Image();
+            const blob = new Blob([svgSource], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0, size, size);
+
+                // Convert to PNG and download
+                canvas.toBlob(function(blob) {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `icon-${size}.png`;
+                    link.click();
+
+                    // Show preview
+                    const previewImg = document.createElement('img');
+                    previewImg.src = link.href;
+                    previewImg.width = size / 2;
+                    previewImg.alt = `${size}x${size} icon`;
+                    previewImg.title = `${size}x${size} icon`;
+
+                    const previewContainer = document.getElementById('preview-container');
+                    const existingPreview = previewContainer.querySelector(`img[alt="${size}x${size} icon"]`);
+                    if (existingPreview) {
+                        existingPreview.replaceWith(previewImg);
+                    } else {
+                        previewContainer.appendChild(previewImg);
+                    }
+                });
+
+                URL.revokeObjectURL(url);
+            };
+
+            img.src = url;
+        }
+    </script>
+</body>
+</html>
