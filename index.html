@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Progressive Web App for reading and filtering link collections">
+    <meta name="theme-color" content="#4A90E2">
+    <title>Link Collection Reader</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Link Collection Reader</h1>
+            <p class="subtitle">Progressive Web App for reading recfiles</p>
+        </header>
+
+        <main>
+            <!-- URL Configuration Section -->
+            <section class="config-section">
+                <h2>⚙️ Configuration</h2>
+                <div class="input-group">
+                    <label for="recfile-url">Recfile URL:</label>
+                    <input
+                        type="url"
+                        id="recfile-url"
+                        list="url-history"
+                        placeholder="https://raw.githubusercontent.com/..."
+                        value="https://raw.githubusercontent.com/alvarogarcia7/link-collection/master/data/links.rec"
+                    >
+                    <datalist id="url-history">
+                        <!-- URL history will be populated dynamically -->
+                    </datalist>
+                    <button id="load-btn" class="btn-primary">Load Records</button>
+                </div>
+                <div id="status" class="status"></div>
+            </section>
+
+            <!-- Filter Section -->
+            <section class="filter-section" id="filter-section" style="display: none;">
+                <h2>🔍 Filters</h2>
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label for="filter-all">Search All Fields:</label>
+                        <input
+                            type="text"
+                            id="filter-all"
+                            placeholder="Search across all fields..."
+                        >
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-category">Category:</label>
+                        <input
+                            type="text"
+                            id="filter-category"
+                            placeholder="e.g., craftsmanship"
+                        >
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-title">Title:</label>
+                        <input
+                            type="text"
+                            id="filter-title"
+                            placeholder="Search in title..."
+                        >
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-tags">Tags:</label>
+                        <input
+                            type="text"
+                            id="filter-tags"
+                            placeholder="e.g., security"
+                        >
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-body">Body:</label>
+                        <input
+                            type="text"
+                            id="filter-body"
+                            placeholder="Search in content..."
+                        >
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-date">Date Range:</label>
+                        <input
+                            type="text"
+                            id="filter-date"
+                            placeholder="YYYY or YYYY-MM"
+                        >
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button id="clear-filters-btn" class="btn-secondary">Clear Filters</button>
+                    <span id="result-count" class="result-count"></span>
+                </div>
+            </section>
+
+            <!-- Records Display Section -->
+            <section class="records-section" id="records-section" style="display: none;">
+                <h2>📖 Records</h2>
+                <div id="records-container" class="records-container"></div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Link Collection Reader PWA | All processing done client-side</p>
+            <p class="install-prompt" id="install-prompt" style="display: none;">
+                <button id="install-btn" class="btn-install">📲 Install App</button>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
