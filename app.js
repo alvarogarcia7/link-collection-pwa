@@ -7,7 +7,6 @@
 const state = {
     records: [],
     filteredRecords: [],
-    currentUrl: ''
 };
 
 // Initialize app when DOM is loaded
@@ -63,15 +62,6 @@ function populateUrlDatalist() {
  * Initialize the application
  */
 function initializeApp() {
-    // Load saved URL from localStorage (fallback to old key if new history doesn't exist)
-    let savedUrl = localStorage.getItem('recfileUrl');
-    const history = getUrlHistory();
-
-    // If we have history, use the most recent URL from history
-    if (history.length > 0) {
-        savedUrl = history[0];
-    }
-
     if (savedUrl) {
         document.getElementById('recfile-url').value = savedUrl;
     }
@@ -82,6 +72,7 @@ function initializeApp() {
     // Set up event listeners
     document.getElementById('load-btn').addEventListener('click', loadRecords);
     document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
+    document.getElementById('toggle-config-btn').addEventListener('click', toggleConfigSection);
 
     // Set up filter input listeners with debouncing
     const filterInputs = [
@@ -132,6 +123,18 @@ function initializeApp() {
 }
 
 /**
+ * Toggle configuration section visibility
+ */
+function toggleConfigSection() {
+    const configSection = document.getElementById('config-section');
+    if (configSection.style.display === 'none') {
+        configSection.style.display = 'block';
+    } else {
+        configSection.style.display = 'none';
+    }
+}
+
+/**
  * Load records from the specified URL
  */
 async function loadRecords() {
@@ -158,15 +161,13 @@ async function loadRecords() {
         const text = await response.text();
 
         // Parse the recfile
+        state.rawRecfileText = text;
         state.records = parseRecfile(text);
         state.filteredRecords = [...state.records];
         state.currentUrl = url;
 
-        // Save URL to localStorage (keep old key for backward compatibility)
         localStorage.setItem('recfileUrl', url);
 
-        // Add to URL history
-        addToUrlHistory(url);
 
         // Show results
         showStatus(`Successfully loaded ${state.records.length} records`, 'success');
@@ -204,6 +205,7 @@ function parseRecfile(text) {
     let currentRecord = {};
     let currentField = null;
     let currentValue = '';
+    let recordStartLine = -1;
     let inMetadata = true;
 
     for (let i = 0; i < lines.length; i++) {
@@ -223,8 +225,10 @@ function parseRecfile(text) {
             }
 
             if (Object.keys(currentRecord).length > 0) {
+                currentRecord._lineNumber = recordStartLine;
                 records.push(currentRecord);
                 currentRecord = {};
+                recordStartLine = -1;
             }
             inMetadata = false;
             continue;
@@ -249,6 +253,11 @@ function parseRecfile(text) {
             // Start new field
             currentField = line.substring(0, colonIndex).trim();
             currentValue = line.substring(colonIndex + 1).trim();
+
+            // Track the start line of this record
+            if (recordStartLine === -1) {
+                recordStartLine = i + 1; // Line numbers are 1-indexed
+            }
         } else if (currentField) {
             // Continuation of previous field value
             currentValue += ' ' + line.trim();
@@ -260,6 +269,7 @@ function parseRecfile(text) {
         currentRecord[currentField] = currentValue.trim();
     }
     if (Object.keys(currentRecord).length > 0) {
+        currentRecord._lineNumber = recordStartLine;
         records.push(currentRecord);
     }
 
@@ -375,6 +385,21 @@ function createRecordCard(record) {
     const link = record.Link || '';
     const origin = record.Origin || '';
     const id = escapeHtml(record.Id || '');
+    const lineNumber = record._lineNumber;
+
+    // Create source link
+    let sourceLink = '';
+    if (lineNumber && state.currentUrl) {
+        // Convert to GitHub blob URL with line number if it's a raw GitHub URL
+        let sourceUrl = state.currentUrl;
+        if (sourceUrl.includes('raw.githubusercontent.com')) {
+            sourceUrl = sourceUrl
+                .replace('raw.githubusercontent.com', 'github.com')
+                .replace(/\/([^\/]+)$/, '/blob/$1');
+        }
+        sourceUrl += `#L${lineNumber}`;
+        sourceLink = `<div class="record-source"><small>📄 <a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">View source (line ${lineNumber})</a></small></div>`;
+    }
 
     return `
         <article class="record-card">
@@ -391,7 +416,6 @@ function createRecordCard(record) {
 
             ${tags.length > 0 ? `
                 <div class="record-tags">
-                    ${tags.map(tag => `<span class="tag" onclick="filterByTag('${escapeHtml(tag).replace(/'/g, "\\'")}')">${escapeHtml(tag)}</span>`).join('')}
                 </div>
             ` : ''}
 
@@ -402,6 +426,8 @@ function createRecordCard(record) {
             ` : ''}
 
             ${id ? `<div class="record-id"><small>ID: ${id}</small></div>` : ''}
+
+            ${sourceLink}
         </article>
     `;
 }
@@ -424,6 +450,40 @@ function formatDate(dateString) {
     } catch (e) {
         return dateString;
     }
+}
+
+/**
+ * Populate autocomplete suggestions for category and tags
+ */
+function populateAutocompleteSuggestions() {
+    // Extract unique categories
+    const categories = new Set();
+    state.records.forEach(record => {
+        if (record.Category) {
+            categories.add(record.Category.trim());
+        }
+    });
+
+    // Extract unique tags
+    const tags = new Set();
+    state.records.forEach(record => {
+        if (record.Tags) {
+            const tagList = record.Tags.split(',').map(t => t.trim()).filter(t => t);
+            tagList.forEach(tag => tags.add(tag));
+        }
+    });
+
+    // Populate category datalist
+    const categoryDatalist = document.getElementById('category-suggestions');
+    categoryDatalist.innerHTML = Array.from(categories).sort()
+        .map(cat => `<option value="${escapeHtml(cat)}">`)
+        .join('');
+
+    // Populate tags datalist
+    const tagsDatalist = document.getElementById('tag-suggestions');
+    tagsDatalist.innerHTML = Array.from(tags).sort()
+        .map(tag => `<option value="${escapeHtml(tag)}">`)
+        .join('');
 }
 
 /**

@@ -65,6 +65,19 @@ header h1 {
 .subtitle {
     color: var(--text-secondary);
     font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.btn-toggle-config {
+    background: var(--text-secondary);
+    color: white;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+.btn-toggle-config:hover {
+    background: var(--primary-color);
 }
 
 /* Main content */
@@ -349,6 +362,22 @@ button {
     margin-top: 8px;
     color: var(--text-secondary);
     font-size: 0.8rem;
+}
+
+.record-source {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.record-source a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.record-source a:hover {
+    text-decoration: underline;
 }
 
 /* No results message */

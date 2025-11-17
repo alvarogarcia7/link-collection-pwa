@@ -23,11 +23,10 @@
         <header>
             <h1>📚 Link Collection Reader</h1>
             <p class="subtitle">Progressive Web App for reading recfiles</p>
+            <button id="toggle-config-btn" class="btn-toggle-config">⚙️ Configuration</button>
         </header>
 
         <main>
-            <!-- URL Configuration Section -->
-            <section class="config-section">
                 <h2>⚙️ Configuration</h2>
                 <div class="input-group">
                     <label for="recfile-url">Recfile URL:</label>
@@ -63,8 +62,10 @@
                         <input
                             type="text"
                             id="filter-category"
+                            list="category-suggestions"
                             placeholder="e.g., craftsmanship"
                         >
+                        <datalist id="category-suggestions"></datalist>
                     </div>
                     <div class="filter-group">
                         <label for="filter-title">Title:</label>
@@ -79,8 +80,10 @@
                         <input
                             type="text"
                             id="filter-tags"
+                            list="tag-suggestions"
                             placeholder="e.g., security"
                         >
+                        <datalist id="tag-suggestions"></datalist>
                     </div>
                     <div class="filter-group">
                         <label for="filter-body">Body:</label>
