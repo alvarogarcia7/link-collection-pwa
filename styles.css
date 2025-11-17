@@ -1,0 +1,477 @@
+/**
+ * Link Collection Reader PWA - Styles
+ * Responsive design with modern, clean aesthetics
+ */
+
+/* CSS Variables for theming */
+:root {
+    --primary-color: #4A90E2;
+    --primary-dark: #357ABD;
+    --secondary-color: #50C878;
+    --background: #F8F9FA;
+    --surface: #FFFFFF;
+    --text-primary: #212529;
+    --text-secondary: #6C757D;
+    --border: #DEE2E6;
+    --shadow: rgba(0, 0, 0, 0.1);
+    --error: #DC3545;
+    --success: #28A745;
+    --warning: #FFC107;
+    --tag-bg: #E7F3FF;
+    --tag-text: #0066CC;
+}
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--background);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* Container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 30px 20px;
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+header h1 {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+/* Main content */
+main {
+    flex: 1;
+}
+
+/* Sections */
+section {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+section h2 {
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 10px;
+}
+
+/* Input groups */
+.input-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.input-group label {
+    font-weight: 600;
+    color: var(--text-primary);
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.input-group input[type="url"] {
+    flex: 1;
+    min-width: 300px;
+    padding: 12px 15px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.input-group input[type="url"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* Buttons */
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+.btn-secondary {
+    background: var(--text-secondary);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: var(--text-primary);
+}
+
+.btn-install {
+    background: var(--secondary-color);
+    color: white;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+}
+
+.btn-install:hover {
+    background: #3DA861;
+}
+
+/* Status messages */
+.status {
+    margin-top: 15px;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.status-loading {
+    background: #FFF3CD;
+    color: #856404;
+    border: 1px solid #FFEAA7;
+}
+
+.status-success {
+    background: #D4EDDA;
+    color: #155724;
+    border: 1px solid #C3E6CB;
+}
+
+.status-error {
+    background: #F8D7DA;
+    color: #721C24;
+    border: 1px solid #F5C6CB;
+}
+
+/* Filter section */
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--text-primary);
+}
+
+.filter-group input {
+    padding: 10px 12px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border-color 0.3s;
+}
+
+.filter-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.result-count {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* Records container */
+.records-container {
+    display: grid;
+    gap: 20px;
+}
+
+/* Record cards */
+.record-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 25px;
+    transition: all 0.3s;
+}
+
+.record-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px var(--shadow);
+    transform: translateY(-2px);
+}
+
+.record-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.record-title {
+    font-size: 1.4rem;
+    color: var(--text-primary);
+    flex: 1;
+    min-width: 200px;
+}
+
+.record-title a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.record-title a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.record-category {
+    background: var(--primary-color);
+    color: white;
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.record-date {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+.record-body {
+    color: var(--text-primary);
+    margin-bottom: 15px;
+    line-height: 1.7;
+}
+
+.record-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.tag {
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.tag:hover {
+    background: var(--tag-text);
+    color: var(--tag-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 6px var(--shadow);
+}
+
+.record-origin {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.record-origin a {
+    color: var(--primary-color);
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.record-origin a:hover {
+    text-decoration: underline;
+}
+
+.record-id {
+    margin-top: 8px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+/* No results message */
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--text-secondary);
+    border-top: 2px solid var(--border);
+    margin-top: 40px;
+}
+
+footer p {
+    margin: 5px 0;
+}
+
+.install-prompt {
+    margin-top: 15px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    section {
+        padding: 20px;
+    }
+
+    .input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .input-group input[type="url"] {
+        min-width: 100%;
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .record-header {
+        flex-direction: column;
+    }
+
+    .record-category {
+        align-self: flex-start;
+    }
+
+    .filter-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .result-count {
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+
+    header {
+        padding: 20px 15px;
+    }
+
+    header h1 {
+        font-size: 1.6rem;
+    }
+
+    section {
+        padding: 15px;
+    }
+
+    .record-card {
+        padding: 15px;
+    }
+}
+
+/* Print styles */
+@media print {
+    body {
+        background: white;
+    }
+
+    .config-section,
+    .filter-section,
+    footer {
+        display: none;
+    }
+
+    .record-card {
+        page-break-inside: avoid;
+        border: 1px solid #000;
+        box-shadow: none;
+    }
+}
+
+/* Loading animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.status-loading {
+    animation: pulse 1.5s ease-in-out infinite;
+}
